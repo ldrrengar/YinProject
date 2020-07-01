@@ -96,8 +96,8 @@ class SmsCodeViewSet(CreateModelMixin, viewsets.GenericViewSet):
         code_record.save()
         model = "SMS_194050695"
         params = {"code": code}
-        # sms_status = send__sms(mobile, model, params)
-        sms_status = {"Code": "OK"}
+        sms_status = send__sms(mobile, model, params)
+        # sms_status = {"Code": "OK"}
         print(code)
         if sms_status["Code"] != 'OK':
             return Response({
