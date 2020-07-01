@@ -17,12 +17,12 @@ xadmin.site.register(TasksType, TasksTypeAdmin)
 
 class TasksAdmin(object):
     # 显示的列
-    list_display = ['tasks_id', 'url', "target_times", "completed_times", "requirement", "total_cost", "state",
-                    "created", "add_time"]
+    list_display = ['tasks_id', 'url', "target_times", "completed_times", "tasks_name", "cost", "total_cost", "state",
+                    "type", "created", "add_time"]
     # 搜索的字段，不要添加时间搜索
-    search_fields = ['tasks_id', 'state', 'created', 'completed_times', 'requirement']
+    search_fields = ['tasks_id', 'state', 'created', 'completed_times', 'type']
     # 过滤
-    list_filter = ['tasks_id', 'state', 'created', 'completed_times', 'requirement', 'add_time']
+    list_filter = ['tasks_id', 'state', 'created', 'completed_times', 'type', 'add_time']
     ordering = ('-add_time',)
 
 
