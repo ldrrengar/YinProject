@@ -22,16 +22,18 @@ import xadmin
 from rest_framework_swagger.views import get_swagger_view
 from rest_framework.documentation import include_docs_urls
 
-from apps.tasks.views import TasksViewSet, CompleteTasksViewSet, BannerViewSet, TasksTypeViewSet
+from apps.tasks.views import TasksViewSet, CompleteTasksViewSet, BannerViewSet, ImageInfoViewSet, \
+    HomePageViewSet, MyTasksViewSet, TransferViewSet
 from apps.capital.views import CapitalViewSet, MoneyRecordViewSet
 from apps.news.views import NewsViewSet
-from apps.users.views import UserProfileViewSet, MemberViewSet, SmsCodeViewSet, UserRegViewSet, PasswordResetViewSet
+from apps.users.views import UserProfileViewSet, MemberViewSet, SmsCodeViewSet, UserRegViewSet, PasswordResetViewSet, \
+    UserBalanceViewSet, PasswordUpdateViewSet, TeamViewSet
 
 router = routers.DefaultRouter()
 # 任务信息view注册
 router.register('tasks', TasksViewSet, base_name="tasks")
 # 任务类型view注册
-router.register('tasks_type', TasksTypeViewSet, base_name="tasks_type")
+# router.register('tasks_type', TasksTypeViewSet, base_name="tasks_type")
 # 完成任务信息view注册
 router.register('complete_tasks', CompleteTasksViewSet, base_name="complete_tasks")
 # 轮播图view注册
@@ -52,6 +54,20 @@ router.register('register', UserRegViewSet, base_name="register")
 router.register('reset_password', PasswordResetViewSet, base_name="reset_password")
 # 新闻公告view注册
 router.register('news', NewsViewSet, base_name="news")
+# 图片view注册
+router.register('image', ImageInfoViewSet, base_name="image")
+# 首页数据view注册
+router.register('homepage', HomePageViewSet, base_name="homepage")
+# 用户金额信息
+router.register('user_balance', UserBalanceViewSet, base_name="user_balance")
+# 用户金额信息
+router.register('update_password', PasswordUpdateViewSet, base_name="update_password")
+# 用户团队信息
+router.register('team', TeamViewSet, base_name="team")
+# 自己操作自己创建的任务
+router.register('my_tasks', MyTasksViewSet, base_name="my_tasks")
+# 转账信息
+router.register('transfer', TransferViewSet, base_name="transfer")
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
