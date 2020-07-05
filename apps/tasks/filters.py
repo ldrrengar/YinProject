@@ -1,5 +1,5 @@
 import django_filters
-from apps.tasks.models import Tasks, CompleteTasks, TasksType
+from apps.tasks.models import Tasks, CompleteTasks
 
 
 # class OrderFilter(django_filters.rest_framework.FilterSet):
@@ -52,11 +52,3 @@ class CompleteTasksFilter(django_filters.rest_framework.FilterSet):
         model = CompleteTasks
         fields = ['execute_id', 'complete_user', 'tasks_id', 'state']
 
-
-class TasksTypeFilter(django_filters.rest_framework.FilterSet):
-    # sort = django_filters.OrderingFilter(fields=('date_joined',))
-    # min_date = django_filters.DateFilter(name='date_joined__date', lookup_expr='gte')
-    # max_date = django_filters.DateFilter(name='date_joined__date', lookup_expr='lte')
-    class Meta:
-        model = TasksType
-        fields = ['type', 'type_id']

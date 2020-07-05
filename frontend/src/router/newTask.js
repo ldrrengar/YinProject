@@ -1,4 +1,4 @@
-const Tabbar = () => import('@/components/Tabbar/')
+// const Tabbar = () => import('@/components/Tabbar/')
 
 export default [
   {
@@ -7,12 +7,12 @@ export default [
     meta: {
       login: true,
       keepAlive: true,
-      showHeader: false
-      // title: '发布任务'
+      showHeader: true,
+      title: '发布任务'
     },
     components: {
-      default: () => import('@/views/newTask/newTask'),
-      tabbar: Tabbar
+      default: () => import('@/views/newTask/newTask')
+      // tabbar: Tabbar
     }
   }
 ]

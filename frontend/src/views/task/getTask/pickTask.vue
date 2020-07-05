@@ -3,7 +3,7 @@
     <div style="margin: 10px; background: #FFFFFF; padding-bottom: 10px;">
       <van-field
         readonly
-        v-model="target_times"
+        v-model="task.tasks_id"
         label="编号"
         type="text"
       />
@@ -13,13 +13,13 @@
         readonly
       />
       <van-field
-        v-model="price"
+        v-model="task.complete_cost"
         label="佣金"
         readonly
       />
       <van-field
         readonly
-        v-model="total_cost"
+        v-model="task.tasks_name"
         autosize
         label="需求"
       />
@@ -52,6 +52,7 @@
 import { Form, Field, Picker, Popup, Button, Uploader, Toast, Dialog } from 'vant'
 import field from '@/components/field/'
 import fieldGroup from '@/components/field-group/'
+import { pickTask, submitImage } from '@/api/loginapi'
 export default {
   name: 'pickTask',
   data () {
@@ -60,21 +61,33 @@ export default {
       target_times: '',
       total_cost: '',
       price: '',
-      type: '',
+      type: '抖音',
       num: 0,
       complete_price: '',
-      fileList: []
+      fileList: [],
+      task: {},
+      imageList: []
     }
   },
   created () {
+    this.task = this.$route.query.task
+    console.log(this.task)
   },
   methods: {
     afterRead (file) {
-      console.log(file)
+      const param = new FormData()
+      param.append('url', file.file)
+      console.log(param)
+      console.log(222)
+      submitImage(param).then(res => {
+        this.imageList.push(res.data.id)
+        console.log(this.imageList)
+        // this.fileList = [...this.fileList, ...res.data.id]
+      })
     },
     copy () {
       let onInput = document.createElement('input')
-      onInput.value = this.url
+      onInput.value = this.task.url
       document.body.appendChild(onInput)
       onInput.select()
       document.execCommand('Copy')
@@ -82,6 +95,15 @@ export default {
       onInput.remove()
     },
     submitTask () {
+      let data = {
+        tasks_id: this.task.tasks_id,
+        price: this.task.complete_cost,
+        image: this.imageList,
+        state: '0'
+      }
+      pickTask(data).then(res => {
+        console.log(res)
+      })
       Dialog.alert({
         title: '提交成功',
         message: '您的任务已经成功提交，请等待工作人员的审核'

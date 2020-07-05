@@ -22,7 +22,7 @@
                编号: {{ task.tasks_id }} <span class="title" v-show="isShow">会员任务</span>
              </van-col>
              <van-col span="6" style="text-align: end;">
-               <span style="color: red;">￥{{ task.cost * 0.5}}</span>
+               <span style="color: red;">￥{{ task.complete_cost}}</span>
              </van-col>
            </van-row>
             <van-divider style="margin: 6px 0;" />
@@ -37,7 +37,7 @@
                 </div>
               </van-col>
               <van-col span="6" style="text-align: end; margin-top: 7px;">
-                <van-button type="primary" size="small" @click="toOrderDetail(task.tasks_id)">领取</van-button>
+                <van-button type="primary" size="small" @click="toOrderDetail(task)">领取</van-button>
               </van-col>
             </van-row>
           </van-row>
@@ -147,11 +147,11 @@ export default {
       this.getOrderList()
     },
     // 领取请求
-    toOrderDetail (id) {
+    toOrderDetail (task) {
       this.$router.replace({
         name: 'pickTask',
-        params: {
-          id: id
+        query: {
+          task: task
         }
       })
     }

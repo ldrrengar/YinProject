@@ -73,12 +73,13 @@ export default {
       userInfo: {}
     }
   },
-
   methods: {
     clearText () {
       this.account = ''
     },
-
+    goBack () {
+      this.$router.back(-1)
+    },
     validate () {
 
     },

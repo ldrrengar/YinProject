@@ -19,6 +19,7 @@
    <md-field
     v-model="password"
     icon="lock"
+    type="password"
     :is-error="isErrow"
     placeholder="请输入新密码"/>
     <md-field

@@ -1,12 +1,16 @@
 import base64
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.users.models import UserProfile, VerifyCode, Member
+from apps.capital.models import Capital
+from apps.tasks.models import CompleteTasks
 
 User = get_user_model()
 
@@ -18,9 +22,9 @@ class UserProfileModelsSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        depth = 1
+        # depth = 1
         model = UserProfile
-        fields = '__all__'
+        fields = "__all__"
 
 
 class VerifyCodeModelsSerializer(serializers.ModelSerializer):
@@ -121,7 +125,7 @@ class UserRegSerializer(serializers.ModelSerializer):
 
 
 class PasswordResetSerializer(serializers.ModelSerializer):
-    """用户密码重置"""
+    """用户登陆密码重置"""
     # 验证手机号是否存在
     username = serializers.CharField(required=False, write_only=True,
                                      error_messages={"blank": "请输入手机号", "required": "请输入手机号"},
@@ -173,3 +177,156 @@ class PasswordResetSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'code', 'password')
+
+
+class UserBalanceModelsSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    balance = serializers.SerializerMethodField()
+    task_reward = serializers.SerializerMethodField()
+    commission = serializers.SerializerMethodField()
+    team_income = serializers.SerializerMethodField()
+    # serializers.CharField(read_only=True)
+
+    # 今日收益
+    balance_today = serializers.SerializerMethodField()
+    # 今日已做普通任务
+    common_task_complete = serializers.SerializerMethodField()
+    # 今日可做普通任务
+    common_task_num = serializers.SerializerMethodField()
+    # 今日已做会员任务
+    member_task_complete = serializers.SerializerMethodField()
+    # 今日可做会员任务
+    member_task_num = serializers.SerializerMethodField()
+
+    def get_username(self, obj):
+        # 用户名
+         return self.context["request"].user.username
+
+    def get_name(self, obj):
+        # 昵称
+         return self.context["request"].user.name
+
+    def get_balance(self, obj):
+        # 余额
+         return self.context["request"].user.balance
+
+    def get_task_reward(self, obj):
+        # 任务奖励
+         return self.context["request"].user.task_reward
+
+    def get_commission(self, obj):
+        # 套餐提成
+         return self.context["request"].user.commission
+
+    def get_team_income(self, obj):
+        # 团队收益
+         return self.context["request"].user.team_income
+
+    def get_balance_today(self, obj):
+        # 今天的收益
+        today = datetime.now()
+        # 今年
+        year = today.strftime("%Y")
+        month = today.strftime("%m")
+        day = today.strftime("%d")
+        capital_today_list = Capital.objects.filter(Q(add_time__year=year) & Q(add_time__month=month)
+                                                    & Q(add_time__day=day) & Q(type="0") & Q(user=self.context["request"].user)).values("money")
+        balance_today = Decimal(0.00)
+        # 将今天的资金明细收入相加
+        for capital_today in capital_today_list:
+            balance_today = balance_today + capital_today["money"]
+        return balance_today
+
+    def get_common_task_complete(self, obj):
+        # 今日已做普通任务
+        today = datetime.now()
+        # 今年
+        year = today.strftime("%Y")
+        month = today.strftime("%m")
+        day = today.strftime("%d")
+        num = CompleteTasks.objects.filter(
+            Q(add_time__year=year) & Q(add_time__month=month) & Q(add_time__day=day) & Q(tasks_id__type="0") & Q(complete_user=self.context["request"].user)).count()
+        return num
+
+    def get_common_task_num(self, obj):
+        # 今日可做普通任务
+         return self.context["request"].user.member_level.common_num
+
+    def get_member_task_complete(self, obj):
+        # 今日已做会员任务
+        today = datetime.now()
+        # 今年
+        year = today.strftime("%Y")
+        month = today.strftime("%m")
+        day = today.strftime("%d")
+        num = CompleteTasks.objects.filter(
+            Q(add_time__year=year) & Q(add_time__month=month) & Q(add_time__day=day) & Q(tasks_id__type="1") & Q(complete_user=self.context["request"].user)).count()
+        return num
+
+    def get_member_task_num(self, obj):
+        # 今日可做会员任务
+         return self.context["request"].user.member_level.member_num
+
+    class Meta:
+        model = UserProfile
+        fields = ["username", "name", "balance", "task_reward", "commission", "team_income", "balance_today",
+                  "common_task_complete", "common_task_num", "member_task_complete", "member_task_num"]
+
+
+class PasswordUpdateSerializer(serializers.ModelSerializer):
+    """用户登陆密码修改"""
+    # 验证手机号是否存在
+    old_password = serializers.CharField(required=False, write_only=True,
+                                         error_messages={"blank": "请输入旧密码", "required": "请输入旧密码"},
+                                         help_text="旧密码", label="旧密码")
+    password = serializers.CharField(
+        required=False, style={'input_type': 'password'}, label="密码", write_only=True
+    )
+
+    # def validate_password(self, password):
+    #     if password:
+    #         return base64.b64decode(password).decode('utf8')
+
+    # 所有字段。attrs是字段验证合法之后返回的总的dict
+    def validate_old_password(self, old_password):
+        # old_password = base64.b64decode(old_password).decode('utf8')
+        if old_password:
+            # 判断原密码是否正确
+            verify = UserProfile.check_password(self.instance, old_password)
+
+            if not verify:
+                # 原密码不正确
+                raise serializers.ValidationError("原密码不正确")
+        return old_password
+
+    # 重写update方法使更新的密码加密
+    def update(self, instance, validated_data):
+        user = super(PasswordUpdateSerializer, self).update(instance, validated_data)
+        print(validated_data["password"])
+        user.password = make_password(validated_data["password"])
+        user.save()
+        return user
+
+    class Meta:
+        model = User
+        fields = ('old_password', 'password')
+
+
+class TeamModelsSerializer(serializers.ModelSerializer):
+    member_level = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+
+    def get_member_level(self, obj):
+        # 昵称
+        for i in obj.member_level.CHOICES:
+            if i[0] == obj.member_level.member_name:
+                return i[1]
+
+    def get_name(self, obj):
+        # 会员等级
+         return obj.name
+
+    class Meta:
+        model = UserProfile
+        fields = ["name", "member_level"]

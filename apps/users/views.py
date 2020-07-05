@@ -1,3 +1,4 @@
+from decimal import Decimal
 from random import choice
 
 from django.contrib.auth import get_user_model
@@ -7,7 +8,7 @@ from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
+from rest_framework.mixins import CreateModelMixin, UpdateModelMixin, ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
@@ -15,10 +16,12 @@ from rest_framework_jwt.serializers import jwt_payload_handler, jwt_encode_handl
 
 from apps.users.models import UserProfile, Member, VerifyCode
 from apps.users.serializers import UserProfileModelsSerializer, MemberModelsSerializer, VerifyCodeModelsSerializer, \
-    UserRegSerializer, PasswordResetSerializer
+    UserRegSerializer, PasswordResetSerializer, UserBalanceModelsSerializer, PasswordUpdateSerializer, \
+    TeamModelsSerializer
 from apps.utils.utils import Pagination
 from apps.users.filters import UserProfileFilter, MemberTasksFilter
 from apps.utils.common import send__sms
+from apps.capital.models import Capital
 
 User = get_user_model()
 
@@ -41,6 +44,32 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     pagination_class = Pagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = UserProfileFilter
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        # 如果会员等级在请求的数据中，说明在修改会员等级，要给上级提成
+        if 'member_level' in request.data.keys():
+            # 开通会员的价格
+            # 邀请人的会员等级
+            invitation_data = UserProfile.objects.filter(username=request.data["invitation_name"]).values("member_level", "balance", "commission")[0]
+            # 邀请人会员等级
+            invitation_level = invitation_data["member_level"]
+            # 邀请人余额
+            invitation_balance = invitation_data["balance"]
+            # 邀请人套餐提成
+            invitation_commission = invitation_data["commission"]
+            # 判断邀请人的会员等级是否小于开通会员的等级
+            if request.data["member_level"] < invitation_level:
+                place = Member.objects.filter(member_id=request.data["member_level"]).values("place")[0]["place"] * Decimal(0.18)
+            else:
+                # 如果大于邀请人的会员，按照邀请人的会员拿到提成
+                place = Member.objects.filter(member_id=invitation_level).values("place")[0]["place"] * Decimal(0.18)
+            invitation_balance = invitation_balance + place
+            invitation_commission = invitation_commission + place
+            Capital.objects.create(user=request.data["invitation_name"], money=place, type="0", operation="套餐提成")
+            UserProfile.objects.filter(username=request.data["invitation_name"]).update(balance=invitation_balance,
+                                                                                        commission=invitation_commission)
+        return self.update(request, *args, **kwargs)
 
 
 class MemberViewSet(viewsets.ModelViewSet):
@@ -134,3 +163,42 @@ class PasswordResetViewSet(UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = PasswordResetSerializer
     queryset = User.objects.all()
     lookup_field = 'username'
+
+
+class UserBalanceViewSet(ListModelMixin, viewsets.GenericViewSet):
+    """获取用户今日信息"""
+    authentication_classes = (JSONWebTokenAuthentication, SessionAuthentication)
+    serializer_class = UserBalanceModelsSerializer
+
+    def get_queryset(self):
+        return UserProfile.objects.filter(username=self.request.user)
+
+    lookup_field = 'username'
+
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filter_class = UserProfileFilter
+
+
+class PasswordUpdateViewSet(UpdateModelMixin, viewsets.GenericViewSet):
+    """更新登陆密码"""
+    authentication_classes = (JSONWebTokenAuthentication, SessionAuthentication)
+    serializer_class = PasswordUpdateSerializer
+
+    def get_queryset(self):
+        return UserProfile.objects.filter(username=self.request.user)
+
+    lookup_field = 'username'
+
+    # filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    # filter_class = UserProfileFilter
+
+
+class TeamViewSet(ListModelMixin, viewsets.GenericViewSet):
+    """获取团队信息"""
+    authentication_classes = (JSONWebTokenAuthentication, SessionAuthentication)
+    serializer_class = TeamModelsSerializer
+    pagination_class = Pagination
+
+    def get_queryset(self):
+        return UserProfile.objects.filter(invitation_name=self.request.user)
+

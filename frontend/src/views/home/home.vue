@@ -6,19 +6,22 @@
     />
     <van-swipe :autoplay="3000"
                indicator-color="white">
-      <!--<van-swipe-item v-for="(banner, index) in shopInfos.banner"-->
-                      <!--:key="index">-->
-        <!--<img src="http://yinzan.net/static/images/head1.png"-->
-             <!--style="height:230px">-->
-      <!--</van-swipe-item>-->
-      <van-swipe-item>
-        <div class="bg">
-        <marquee style="color: #ffffff;" direction="left" behavior="scroll" scrollamount="10" scrolldelay="0" loop="-1" hspace="10" vspace="10">
-        <!---->
-          <!--&#45;&#45;&gt;-->
-        </marquee>
+      <van-swipe-item v-for="(banner, index) in bannerList"
+                      :key="index">
+<!--        <div class="bg" :style="{background-image: url(' + banner.image + ') no-repeat}"></div>-->
+        <div class="bg" :style="{ 'background-image': 'url(' + banner.image + ')'}">
         </div>
+<!--        <img :src="banner.image"-->
+<!--             style="height:230px">-->
       </van-swipe-item>
+<!--      <van-swipe-item>-->
+<!--        <div class="bg">-->
+<!--        <marquee style="color: #ffffff;" direction="left" behavior="scroll" scrollamount="10" scrolldelay="0" loop="-1" hspace="10" vspace="10">-->
+<!--        &lt;!&ndash;&ndash;&gt;-->
+<!--          &lt;!&ndash;&#45;&#45;&gt;&ndash;&gt;-->
+<!--        </marquee>-->
+<!--        </div>-->
+<!--      </van-swipe-item>-->
     </van-swipe>
     <van-row class="order_status">
       <van-col span="6">
@@ -34,13 +37,13 @@
         <div>新手指南</div>
       </van-col>
       <van-col span="6" @click="$router.push({path: '/myInvitation'})">
-        <div class="order_status_icon" style="background: #f59a08; color: #ffffff;" @click="$router.push({path: '/user/order/list/3'})">
+        <div class="order_status_icon" style="background: #f59a08; color: #ffffff;" @click="$router.push({path: '/myInvitation'})">
           <van-icon class="iconfont icon-yqhy"/>
         </div>
         <div>邀请好友</div>
       </van-col>
       <van-col span="6">
-        <div class="order_status_icon" style="background: #db3d3c; color: #ffffff;" @click="$router.push({path: '/user/order/list/4'})">
+        <div class="order_status_icon" style="background: #db3d3c; color: #ffffff;" @click="$router.push({path: '/member'})">
           <van-icon class="iconfont icon-ziyuan"/>
         </div>
         <div>开通会员</div>
@@ -60,15 +63,15 @@
     </van-row>
     <van-row class="taskRow" style="background: #5c85fb; color: #ffffff;">
       <van-col span="6"><van-icon class="iconfont icon-ziyuan" style="font-size: 25px;"/></van-col>
-      <van-col span="18" style="text-align: left;">今日任务数: 518000</van-col>
+      <van-col span="18" style="text-align: left;">今日任务数: {{this.homepage.tasks}}</van-col>
     </van-row>
     <van-row class="taskRow" style="background: #0ed4c5; color: #ffffff;">
       <van-col span="6"><van-icon class="iconfont icon-ziyuan" style="font-size: 25px;"/></van-col>
-      <van-col span="18" style="text-align: left;">今日用户数: 52756</van-col>
+      <van-col span="18" style="text-align: left;">今日用户数: {{this.homepage.users}}</van-col>
     </van-row>
     <van-row class="taskRow" style="background: #ff655b; color: #ffffff;">
       <van-col span="6"><van-icon class="iconfont icon-ziyuan" style="font-size: 25px;"/></van-col>
-      <van-col span="18"  style="text-align: left;">今日已完成: 2865589</van-col>
+      <van-col span="18"  style="text-align: left;">今日已完成: {{this.homepage.completes}}</van-col>
     </van-row>
     <van-row class="taskRow" style="background: #ffa72d; color: #ffffff;">
       <van-col span="6"><van-icon class="iconfont icon-ziyuan" style="font-size: 25px;"/></van-col>
@@ -98,24 +101,36 @@ import {
   NoticeBar
 } from 'vant'
 import scrollFixed from '@/mixin/scroll-fixed'
+import { getBanner, homePage } from '@/api/loginapi'
     export default {
       name: 'home',
       mixins: [scrollFixed],
 
       data () {
         return {
-          shopInfos: [],
-          isLoading: false
+          bannerList: [],
+          isLoading: false,
+          homepage: []
         }
       },
 
       created () {
         this.initViews()
-        this.shopInfos = [{
-          banner: [{
-            url: '../../assets/images/head1.png'
-          }]
-        }]
+        getBanner().then(res => {
+          console.log(res)
+          this.bannerList = res.data
+        })
+
+        homePage().then(res => {
+          console.log(11111)
+          console.log(res)
+          this.homepage = res.data[0].ThreeData
+        })
+        // this.shopInfos = [{
+        //   banner: [{
+        //     url: '../../assets/images/head1.png'
+        //   }]
+        // }]
       },
       methods: {
         changeTabbar (o) {
@@ -220,7 +235,7 @@ import scrollFixed from '@/mixin/scroll-fixed'
   width: 100%;
   height: 140px;
   height: 24vh;
-  background: url(../../assets/images/head1.png) no-repeat;
+  /*background: url(../../assets/images/head1.png) no-repeat;*/
   background-size: 100% 24vh;
   font-size: 12px;
 }

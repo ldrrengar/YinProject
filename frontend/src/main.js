@@ -4,6 +4,7 @@ import router from './router'
 import 'vant/lib/icon/local.css'
 import '@/assets/scss/global.scss'
 import '@/assets/scss/iconfont/iconfont.css'
+import bridge from './utils/nativeJsBridge'
 import VueCountdown from '@chenfengyuan/vue-countdown'
 import { Lazyload, Icon, Cell, CellGroup, loading, Button, Toast } from 'vant'
 import store from './store'
@@ -33,6 +34,7 @@ new Vue({
   el: '#app',
   router,
   store,
+  bridge,
   components: { App },
   template: '<App/>'
 })

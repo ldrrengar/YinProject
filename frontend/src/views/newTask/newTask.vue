@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-top: 20px;">
+  <div style="margin-top: 50px;">
     <van-form @submit="onSubmit">
       <van-field
         v-model="url"
@@ -30,7 +30,8 @@
         v-model="price"
         label="出价"
         placeholder="请输入"
-        :rules="[{ required: true, message: '请选择任务要求' }]"
+        @keyup.native="priveChange"
+        :rules="[{ required: true, message: '请输入单条价格' }]"
       />
       <van-field
         readonly
@@ -71,7 +72,7 @@
 import { Form, Field, Picker, Popup, Button } from 'vant'
 import field from '@/components/field/'
 import fieldGroup from '@/components/field-group/'
-import { getTasksType, sumbitTasks } from '@/api/loginapi'
+import { sumbitTasks } from '@/api/loginapi'
 export default {
     name: 'newTask',
     data () {
@@ -104,11 +105,11 @@ export default {
         showPicker1: false
       }
     },
-  created () {
-    getTasksType().then(res => {
-      this.columns1 = res.data.results
-    })
-  },
+  // created () {
+  //   getTasksType().then(res => {
+  //     this.columns1 = res.data.results
+  //   })
+  // },
     methods: {
       onConfirm (value) {
         this.target_times = value.text
@@ -116,12 +117,10 @@ export default {
         this.showPicker = false
         this.costSum()
       },
-      onConfirm1 (value) {
-        this.type = value.type
-        this.price = value.price
-        this.complete_price = value.complete_price
-        this.showPicker1 = false
-        this.costSum()
+      priveChange () {
+        if (this.num !== 0 && this.price !== '') {
+          this.total_cost = this.num * Number(this.price)
+        }
       },
       costSum () {
         if (this.num !== 0 && this.price !== '') {
@@ -135,10 +134,17 @@ export default {
           // target_times:this.target_times,
           total_cost: this.total_cost,
           tasks_name: this.type,
-          cost: this.num
+          cost: this.price,
+          complete_cost: this.price * 0.5
         }
         sumbitTasks(data).then(res => {
-          console.log(res)
+          this.$router.push({
+            name: 'payMent',
+            query: {
+              tasks_id: res.data.tasks_id,
+              total_cost: this.total_cost
+            }
+          })
         })
       }
     },

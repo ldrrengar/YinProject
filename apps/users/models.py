@@ -22,7 +22,8 @@ class Member(models.Model):
     common_num = models.CharField(verbose_name="普通任务条数", max_length=10, help_text="普通任务条数")
     member_num = models.CharField(verbose_name="会员任务条数", max_length=10, help_text="会员任务条数")
     time = models.CharField(verbose_name="有效期限", max_length=11, help_text="有效期限：单位：年")
-    place = models.CharField(verbose_name="价格", max_length=11, help_text="价格")
+    # place = models.CharField(verbose_name="价格", max_length=11, help_text="价格")
+    place = models.DecimalField(verbose_name="价格", max_digits=16, decimal_places=2, default=0.00, help_text="价格")
     add_time = models.DateTimeField(verbose_name="添加时间", default=datetime.now, help_text="添加时间")
 
     class Meta:
@@ -46,14 +47,18 @@ class UserProfile(AbstractUser):
     pay_password = models.CharField(verbose_name="支付密码", max_length=30, null=True, blank=True, help_text="支付密码")
     ZFB_name = models.CharField(verbose_name="支付宝名称", max_length=30, null=True, blank=True, help_text="支付宝名称")
     ZFB_account = models.CharField(verbose_name="支付宝账号",  max_length=30, null=True, blank=True, help_text="支付宝账号")
-    task_num = models.CharField(verbose_name="普通任务条数", max_length=10, null=True, blank=True, help_text="普通任务条数")
+    # task_num = models.CharField(verbose_name="普通任务条数", max_length=10, null=True, blank=True, help_text="普通任务条数")
     member_limit = models.CharField(verbose_name="会员到期日", max_length=10, null=True, blank=True,
                                     help_text="会员到期日 格式：2020-06-30")
     invitation_code = models.CharField(verbose_name="邀请码",  max_length=30, null=True, blank=True, help_text="邀请码")
     invitation_name = models.ForeignKey('self', verbose_name="邀请人",  max_length=30, null=True, blank=True,
                                         help_text="邀请人", to_field="username", on_delete=models.DO_NOTHING)
-    member_level = models.ForeignKey(Member, null=True, blank=True, verbose_name="会员等级", help_text="会员等级",
+    member_level = models.ForeignKey(Member, null=True, blank=True, verbose_name="会员等级", help_text="会员等级", default=1,
                                      on_delete=models.SET_NULL)
+    balance = models.DecimalField(verbose_name="余额", max_digits=16, decimal_places=2, default=0.00, help_text="余额")
+    task_reward = models.DecimalField(verbose_name="任务奖励", max_digits=9, decimal_places=2, default=0.00, help_text="任务奖励")
+    commission = models.DecimalField(verbose_name="套餐提成", max_digits=9, decimal_places=2, default=0.00, help_text="套餐提成")
+    team_income = models.DecimalField(verbose_name="团队收益", max_digits=9, decimal_places=2, default=0.00, help_text="团队收益")
 
     class Meta:
         verbose_name = "用户信息"

@@ -18,7 +18,7 @@ export default [
     path: '/getTask',
     name: 'getTask',
     meta: {
-      // login: true,
+      login: true,
       showHeader: true,
       title: '任务中心'
     },

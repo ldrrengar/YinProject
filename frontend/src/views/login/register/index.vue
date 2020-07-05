@@ -21,6 +21,7 @@
     v-model="password"
     icon="lock"
     :is-error="isErrow"
+    type="password"
     placeholder="请输入密码"/>
     <md-field
     v-model="passwordRepeat"

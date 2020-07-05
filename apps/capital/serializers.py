@@ -7,7 +7,6 @@ class CapitalModelsSerializer(serializers.ModelSerializer):
     add_time = serializers.DateTimeField(read_only=True, format='%Y-%m-%d %H:%M:%S')
 
     class Meta:
-        depth = 1
         model = Capital
         fields = '__all__'
 

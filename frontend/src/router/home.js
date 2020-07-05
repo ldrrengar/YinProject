@@ -40,5 +40,27 @@ export default [
       showHeader: true,
       title: '公告详情'
     }
+  },
+  {
+    path: '/member',
+    name: 'member',
+    components: {
+      default: () => import('@/views/home/member/member')
+    },
+    meta: {
+      showHeader: true,
+      title: '开通会员'
+    }
+  },
+  {
+    path: '/payMent',
+    name: 'payMent',
+    components: {
+      default: () => import('@/views/home/payMent/payMent')
+    },
+    meta: {
+      showHeader: true,
+      title: '转账提交'
+    }
   }
 ]
