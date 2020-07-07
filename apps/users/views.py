@@ -84,7 +84,7 @@ class MemberViewSet(viewsets.ModelViewSet):
     authentication_classes = (JSONWebTokenAuthentication, SessionAuthentication)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Member.objects.all().order_by('-add_time')
+    queryset = Member.objects.exclude(member_id=1).order_by('add_time')
     serializer_class = MemberModelsSerializer
 
     lookup_field = 'member_id'

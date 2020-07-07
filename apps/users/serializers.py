@@ -56,6 +56,13 @@ class VerifyCodeModelsSerializer(serializers.ModelSerializer):
 
 class MemberModelsSerializer(serializers.ModelSerializer):
     add_time = serializers.DateTimeField(read_only=True, format='%Y-%m-%d %H:%M:%S')
+    member_name = serializers.SerializerMethodField()
+
+    def get_member_name(self, obj):
+        # 昵称
+        for i in obj.CHOICES:
+            if i[0] == obj.member_name:
+                return i[1]
 
     class Meta:
         depth = 1
