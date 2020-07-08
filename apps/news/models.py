@@ -20,3 +20,18 @@ class News(models.Model):
     def __str__(self):
         return str(self.new_id)
 
+
+class Notice(models.Model):
+    """
+    通知
+    """
+    new_id = models.AutoField(verbose_name="通知id", primary_key=True, help_text="通知id")
+    new_content = models.CharField(verbose_name="通知内容", max_length=6400, help_text="通知内容")
+    add_time = models.DateTimeField(verbose_name="创建时间", default=datetime.now, help_text="创建时间")
+
+    class Meta:
+        verbose_name = ""
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.new_id)

@@ -63,8 +63,9 @@ class CompleteTasksCreateModelsSerializer(serializers.ModelSerializer):
     # image = serializers.PrimaryKeyRelatedField(queryset=ImageInfo.objects.all())
 
     def create(self, validated_data):
-        sign = CompleteTasks.objects.filter(tasks_id=validated_data['tasks_id'], state__in=["0", "2"])
-        if sign:
+        sign = CompleteTasks.objects.filter(tasks_id=validated_data['tasks_id'], state__in=["0", "2"],
+                                            complete_user=self.context["request"].user).count()
+        if sign >0:
             raise serializers.ValidationError('提交失败：已提交过该任务，无法再次提交')
         # ①-获取任务分类
         task_type = validated_data['tasks_id'].type
@@ -92,16 +93,23 @@ class CompleteTasksCreateModelsSerializer(serializers.ModelSerializer):
             year = today.strftime("%Y")
             month = today.strftime("%m")
             day = today.strftime("%d")
-            # 今天已完成的普通任务个数
+            # 今天已完成的会员任务个数
             num = CompleteTasks.objects.filter(
                 Q(add_time__year=year) & Q(add_time__month=month) & Q(add_time__day=day) & Q(
                     tasks_id__type="1") & Q(complete_user=self.context["request"].user)).count()
-            # 可以完成的普通任务个数
+            # 可以完成的会员任务个数
             sum_num = self.context["request"].user.member_level.member_num
             if num >= int(sum_num):
                 raise serializers.ValidationError('提交失败：今日完成会员任务已达最大次数')
         else:
             raise serializers.ValidationError('提交失败')
+            # 创建完成任务的时候，任务完成条数增加1
+        # tasks = Tasks.objects.filter(tasks_id=validated_data['tasks_id'].tasks_id).values('completed_times', 'target_times')[0]
+        completed_times, target_times = validated_data['tasks_id'].completed_times, validated_data['tasks_id'].target_times
+        if completed_times >= target_times:
+            raise serializers.ValidationError('提交失败：该任务已完成')
+        completed_times = completed_times + 1
+        Tasks.objects.filter(tasks_id=validated_data['tasks_id'].tasks_id).update(completed_times=completed_times)
         c_models = super(CompleteTasksCreateModelsSerializer, self).create(validated_data=validated_data)
         # 默认为当前用户为创建人
         c_models.complete_user = self.context['request'].user

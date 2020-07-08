@@ -1,8 +1,9 @@
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
@@ -11,6 +12,7 @@ from apps.capital.models import Capital, MoneyRecord
 from apps.capital.serializers import CapitalModelsSerializer, MoneyRecordTasksModelsSerializer
 from apps.utils.utils import Pagination
 from apps.capital.filters import CapitalFilter, MoneyRecordTasksFilter
+from apps.users.models import UserProfile
 
 
 class CapitalViewSet(viewsets.ModelViewSet):
@@ -52,5 +54,17 @@ class MoneyRecordViewSet(viewsets.ModelViewSet):
     pagination_class = Pagination
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = MoneyRecordTasksFilter
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        balance = request.user.balance-serializer.validated_data["money"]
+        # 用户余额减少提现金额
+        UserProfile.objects.filter(username=request.user).update(balance=balance)
+        Capital.objects.create(user=request.user, money=serializer.validated_data["money"], type="1",
+                               operation="提现")
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 

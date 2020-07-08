@@ -75,7 +75,7 @@ class TransferInfoAdmin(object):
     # 搜索的字段，不要添加时间搜索
     search_fields = ['transfer_id', "tasks_id", "cheques_account", "payment_account", "state"]
     # 过滤
-    list_filter = ['id', 'add_time']
+    list_filter = ['transfer_id', 'add_time']
     ordering = ('-add_time',)
 
 

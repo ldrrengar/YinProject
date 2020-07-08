@@ -80,10 +80,10 @@ class CompleteTasksViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        # 创建完成任务的时候，任务完成条数增加1
-        completed_times = Tasks.objects.filter(tasks_id=request.data["tasks_id"]).values('completed_times')[0]['completed_times']
-        completed_times = completed_times + 1
-        Tasks.objects.filter(tasks_id=request.data["tasks_id"]).update(completed_times=completed_times)
+        # # 创建完成任务的时候，任务完成条数增加1
+        # completed_times = Tasks.objects.filter(tasks_id=request.data["tasks_id"]).values('completed_times')[0]['completed_times']
+        # completed_times = completed_times + 1
+        # Tasks.objects.filter(tasks_id=request.data["tasks_id"]).update(completed_times=completed_times)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def partial_update(self, request, *args, **kwargs):
@@ -227,5 +227,6 @@ class TransferViewSet(mixins.CreateModelMixin, GenericViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        Tasks.objects.filter(tasks_id=request.data["tasks_id"]).update(state="1")
+        if not request.data["member"]:
+            Tasks.objects.filter(tasks_id=request.data["tasks_id"]).update(state="1")
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

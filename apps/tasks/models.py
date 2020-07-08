@@ -144,23 +144,28 @@ class Banner(models.Model):
 
 class Transfer(models.Model):
     """
-    支付信息
+    转账信息
     """
     STATE_CHOICES = (
         ("0", "已支付"),
-        ("1", "已退回")
+        ("1", "已退回"),
+        ("2", "驳回，已退款"),
     )
     transfer_id = models.AutoField(verbose_name="转账编号", primary_key=True, help_text="转账编号")
-    tasks_id = models.ForeignKey(Tasks, max_length=11, help_text="任务编号", verbose_name="任务编号", null=True, blank=True,
-                                 on_delete=models.DO_NOTHING)
+    # tasks_id = models.ForeignKey(Tasks, max_length=11, help_text="任务编号或者会员编号", verbose_name="任务编号或者会员编号", null=True, blank=True,
+    #                              on_delete=models.DO_NOTHING)
+    tasks_id = models.CharField(verbose_name="任务编号或者会员编号", max_length=200, help_text="任务编号或者会员编号")
+    created = models.ForeignKey(UserProfile, max_length=11, help_text="创建人", verbose_name="创建人", null=True,
+                                related_name='transfer', to_field="username", on_delete=models.DO_NOTHING)
     money = models.DecimalField(verbose_name="金额", max_digits=9, decimal_places=2, help_text="金额")
+    member = models.BooleanField(verbose_name="是否开通会员转账", default=False, help_text="是否开通会员转账")
     cheques_account = models.CharField(verbose_name="收款人账号", max_length=200, help_text="收款人账号")
     cheques_name = models.CharField(verbose_name="收款人名称", max_length=200, help_text="收款人名称")
     payment_account = models.CharField(verbose_name="付款人账号", max_length=200, help_text="付款人账号")
     payment_name = models.CharField(verbose_name="付款人名称", max_length=200, help_text="付款人名称")
     image = models.ManyToManyField(ImageInfo, verbose_name="照片", blank=True, help_text="照片")
-    state = models.CharField(verbose_name="状态", max_length=10, choices=STATE_CHOICES, default="1",
-                             help_text="状态 0：已支付,1：已退回 暂时没用到这个字段")
+    state = models.CharField(verbose_name="状态", max_length=10, choices=STATE_CHOICES, default="0",
+                             help_text="状态 0：已支付, 1：审核通过, 2：驳回，已退款")
     remarks = models.CharField(verbose_name="备注", null=True, blank=True, max_length=360, help_text="备注")
     add_time = models.DateTimeField(verbose_name="创建时间", default=datetime.now, help_text="创建时间")
 
