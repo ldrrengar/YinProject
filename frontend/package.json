@@ -14,7 +14,7 @@
     "@chenfengyuan/vue-countdown": "^1.1.5",
     "axios": "^0.19.0",
     "dayjs": "^1.8.28",
-    "qs": "^6.9.1",
+    "qs": "^6.9.7",
     "vant": "^2.2.14",
     "vue": "^2.6.11",
     "vue-router": "^3.0.1",
